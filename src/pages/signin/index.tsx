@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { schema } from '@/types/validator/signForm';
 import AuthInput from '@/components/ui/AuthInput';
 import { postAuthLogin } from '@/services/api';
@@ -9,6 +10,7 @@ import Image from 'next/image';
 import axios from 'axios';
 
 export default function SignInPage() {
+  const [token, setToken] = useState(null);
   const router = useRouter();
 
   type FormData = {
@@ -20,15 +22,12 @@ export default function SignInPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>();
 
-  const onSubmit = async (data: FormData) => {
-    const { email, password } = data;
-    console.log(data);
+  const onSubmit = async (loginData: FormData) => {
     try {
-      await postAuthLogin({ email, password });
-      console.log(data);
-      router.push('/');
+      const response = await postAuthLogin(loginData);
+      console.log(response);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         console.log('가입되지 않은 사용자 입니다.');
@@ -83,40 +82,35 @@ export default function SignInPage() {
             {...register('password')}
             placeholder='비밀번호를 입력해주세요'
           />
+          <Button variant='default' className=' bg-red-F text-[2rem]' type='submit' size='auth'>
+            로그인
+          </Button>
+        </form>
 
-          <div className='mt-[2.8rem] flex flex-col gap-[1.2rem]'>
-            <Button variant='default' className=' bg-red-F text-[2rem]' type='submit' size='auth'>
-              로그인
-            </Button>
-            <div className='relative'>
-              <Image
-                src='/svgs/kakao-icon.svg'
-                height={25}
-                width={28}
-                alt='kakao'
-                className='absolute left-[2.8rem] mt-8'
-              />
-              <Button
-                variant='sns'
-                size='auth'
-                className='bg-yellow text-[2rem] text-black-0'
-                onClick={handleKakaoLogin}
-              >
-                카카오로 로그인
-              </Button>
-            </div>
-            <Button
-              onClick={() => {
-                router.push('/signup');
-              }}
-              variant='outline'
-              size='auth'
-              className='border border-red-F bg-white text-[2rem] text-red-F'
-            >
-              회원가입
+        <div className='mt-[2.8rem] flex flex-col gap-[1.2rem]'>
+          <div className='relative'>
+            <Image
+              src='/svgs/kakao-icon.svg'
+              height={25}
+              width={28}
+              alt='kakao'
+              className='absolute left-[2.8rem] mt-8'
+            />
+            <Button variant='sns' size='auth' className='bg-yellow text-[2rem] text-black-0' onClick={handleKakaoLogin}>
+              카카오로 로그인
             </Button>
           </div>
-        </form>
+          <Button
+            onClick={() => {
+              router.push('/signup');
+            }}
+            variant='outline'
+            size='auth'
+            className='border border-red-F bg-white text-[2rem] text-red-F'
+          >
+            회원가입
+          </Button>
+        </div>
       </div>
     </div>
   );
