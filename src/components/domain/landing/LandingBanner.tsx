@@ -1,87 +1,104 @@
-import React, { useState } from 'react';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import React, { useEffect, useState } from 'react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  MainCarouselPrevious,
+  MainCarouselNext,
+  type CarouselApi,
+} from '@/components/ui/mainCarousel';
 import Image from 'next/image';
-// import Autoplay from 'embla-carousel-autoplay';
+import Autoplay from 'embla-carousel-autoplay';
 
 const BannerInformation = [
   {
-    src: '/svgs/banner-1.svg',
+    src: '/svgs/landingBanner.svg',
     title: (
       <>
-        1. 놓치면 아쉬운 <br /> 종료임박 프로젝트
+        유무 OPEN!
+        <br />
+        작가님 들어오세요!
       </>
     ),
     subTitle: (
       <>
-        서포터님의 사랑은 받은 <br />
-        인기프로젝트가 곧 끝나요 <br />
-        프로젝트가 종료되기 전 살펴보세요!
+        유일무이한 당신의 작품이
+        <br />
+        특별한 가치를 가지고 오래 지속되도록
+        <br />
+        유무가 응원할게요!
       </>
     ),
   },
   {
-    src: '/svgs/banner-1.svg',
+    src: '/svgs/landingBanner.svg',
     title: (
       <>
-        2. 놓치면 아쉬운 <br /> 종료임박 프로젝트
+        유무 OPEN!
+        <br />
+        작가님 들어오세요!
       </>
     ),
     subTitle: (
       <>
-        서포터님의 사랑은 받은 <br />
-        인기프로젝트가 곧 끝나요 <br />
-        프로젝트가 종료되기 전 살펴보세요!
+        유일무이한 당신의 작품이
+        <br />
+        특별한 가치를 가지고 오래 지속되도록
+        <br />
+        유무가 응원할게요!
       </>
     ),
   },
   {
-    src: '/svgs/banner-1.svg',
+    src: '/svgs/landingBanner.svg',
     title: (
       <>
-        3. 놓치면 아쉬운 <br /> 종료임박 프로젝트
+        유무 OPEN!
+        <br />
+        작가님 들어오세요!
       </>
     ),
     subTitle: (
       <>
-        서포터님의 사랑은 받은 <br />
-        인기프로젝트가 곧 끝나요 <br />
-        프로젝트가 종료되기 전 살펴보세요!
+        유일무이한 당신의 작품이
+        <br />
+        특별한 가치를 가지고 오래 지속되도록
+        <br />
+        유무가 응원할게요!
       </>
     ),
   },
 ];
 
 export default function LandingBanner() {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
 
-  const nextSlide = () => {
-    setActiveIndex((prevIndex) => (prevIndex === BannerInformation.length - 1 ? 0 : prevIndex + 1));
-  };
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
 
-  const prevSlide = () => {
-    setActiveIndex((prevIndex) => (prevIndex === 0 ? BannerInformation.length - 1 : prevIndex - 1));
-  };
+    api.on('select', () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
+
   return (
     <section>
       <Carousel
         className=' w-full'
-        // plugins={[
-        //   Autoplay({
-        //     delay: 2000,
-        //   }),
-        // ]}
-        opts={{
-          loop: true,
-          watchDrag: false,
-          active: false,
-        }}
+        setApi={setApi}
+        plugins={[
+          Autoplay({
+            delay: 4000,
+          }),
+        ]}
       >
-        <CarouselContent
-          style={{
-            transform: `translateX(-${activeIndex * 100}%)`,
-            transition: 'transform 0.5s ease-in-out',
-          }}
-        >
+        <CarouselContent>
           {BannerInformation.map((el, index) => (
             <CarouselItem className='relative' key={index}>
               <Image
@@ -89,34 +106,37 @@ export default function LandingBanner() {
                 alt={`배너이미지 `}
                 width={1375}
                 height={396}
-                priority
-                className='h-auto w-full object-cover'
+                className='h-auto w-full rounded-[2rem] object-cover'
               />
-              <div className='absolute left-[15.6rem] top-0 max-h-[39.8rem] max-w-[37.2rem]'>
-                <p className='pt-[8.8rem] text-[4.8rem] font-bold leading-[6rem] text-[#fff]'>{el.title}</p>
-                <div className='mt-[2.6rem] text-[1.8rem] font-normal leading-[2.5rem] text-[#fff]'>{el.subTitle}</div>
+              <div className='absolute left-[15.6rem] top-0 max-h-[39.8rem] max-w-[38.1rem]'>
+                <p className='pt-[8.8rem] font-TheJamsil text-[4.8rem] font-bold leading-[6rem]'>{el.title}</p>
+                <div className='<br /> mt-[2.6rem] text-[1.8rem] font-normal leading-[2.5rem]'>{el.subTitle}</div>
               </div>
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious
-          type='button'
-          onClick={prevSlide}
+        <MainCarouselPrevious
+          variant='arrow'
           className='h-[7.7rem] w-[7.7rem] rounded-full border-transparent bg-[#fff] shadow-lg'
         />
-        <CarouselNext
+        <MainCarouselNext
           type='button'
-          onClick={nextSlide}
+          variant='arrow'
           className='h-[7.7rem] w-[7.7rem] rounded-full border-transparent bg-[#fff] shadow-lg'
         />
       </Carousel>
-      <div className='mt-4 flex justify-end'>
+      <div className='mt-4 flex justify-end text-muted-foreground'>
         {BannerInformation.map((_, index) => (
-          <span
-            key={index}
-            onClick={() => setActiveIndex(index)}
-            className={`mx-2 h-[1.2rem] w-[1.2rem] cursor-pointer rounded-full ${index === activeIndex ? 'bg-[#ff7752]' : 'bg-[#d9d9d9]'}`}
-          ></span>
+          <>
+            <span
+              key={index}
+              className={`mx-2 h-[1.2rem] w-[1.2rem] cursor-pointer rounded-full ${index + 1 === current ? 'bg-[#ff7752]' : 'bg-[#d9d9d9]'}`}
+            ></span>
+            <div className='hidden'>
+              {count} of
+              {current}
+            </div>
+          </>
         ))}
       </div>
     </section>

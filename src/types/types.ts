@@ -1,4 +1,4 @@
-export interface UsersProps {
+export interface MemberProps {
   id: number;
   email: string;
   nickname: string;
@@ -57,42 +57,53 @@ export interface ArtProps {
 
 export interface AuctionProps {
   id: number;
-  artId: number;
-  artDetail: string;
-  artSize: string;
-  artDate: Date;
-  startDate: Date;
-  endDate: Date;
-  startPrice: number;
-  endPrice: null | number;
-  bidder: null | string;
-  notice: null | string;
-  receiveType: string;
+  artImage: string;
+  artName: string;
+  artSubTitle: string;
+  createdAt: string;
+  artist: string;
+  status: string;
+  wishCnt: number;
 }
 
-interface RegistrationRequestProps {
-  artName: string;
+export interface AuctionDetailProps {
+  artInfo: GetAuctionDetailsArtInfoProps;
+  artistInfo: GetAuctionDetailsArtistInfoProps;
+  id: number;
   artDescription: string;
+  artSummary: null;
   artSize: string;
-  artCreatedDate?: Date;
-  auctionStartDate?: Date;
-  auctionEndDate?: Date;
-  defaultBid?: number;
-  notice: string;
+  artCreatedDate: string;
+  auctionStartDate: string;
+  auctionEndDate: string;
+  defaultBid: number;
+  winningBid: string | number;
+  winningBidder: string | null;
+  notice: string | null;
   receiveType: string;
 }
 
 export interface RegistrationProps {
-  request: RegistrationRequestProps;
-  image: string;
-}
-export interface AuctionCheckProps {
-  page?: number;
-  size?: number;
-  keyword?: string;
+  artName: string;
+  artSubTitle: string;
+  artDescription: string;
+  artSummary: string;
+  artSize: string;
+  artCreatedDate?: string;
+  auctionStartDate?: string;
+  auctionEndDate?: string;
+  defaultBid?: string;
+  notice: string;
+  receiveType: string;
 }
 
-export interface UserInfoProps {
+export interface AuctionProps {
+  page: number;
+  size: number;
+  sort?: string;
+  keyword?: string;
+}
+export interface MemberInfoProps {
   id: number;
   email: string;
   nickname: string;
@@ -102,12 +113,10 @@ export interface UserInfoProps {
   profileImage: null | string;
 }
 
-export interface PutUserProps {
-  nickname: string;
-  introduce: string;
-  profileImage: string | null;
+export interface PutMemberPwdProps {
   password: string;
   newPassword: string;
+  newCheckPassword: string;
 }
 
 export interface PostAuthLoginProps {
@@ -120,4 +129,40 @@ export interface PostAuthSignUpProps {
   email: string;
   password: string;
   checkPassword: string;
+}
+
+export interface GetAuctionDetailsArtInfoProps {
+  id: number;
+  artName: string;
+  artSubTitle: string;
+  artImage: string;
+  artist: string;
+  status: string;
+  createAt: string;
+  wishCnt: number;
+}
+
+export interface GetAuctionDetailsArtistInfoProps {
+  email: string;
+  nickname: string;
+  introduce: null | string;
+  profileImage: null | string;
+  loginStatus: string;
+}
+
+export interface GetAuctionDetailsProps {
+  artInfo: GetAuctionDetailsArtInfoProps;
+  artistInfo: GetAuctionDetailsArtistInfoProps;
+  id: number;
+  artDescription: string;
+  artSummary: null;
+  artSize: string;
+  artCreatedDate: string;
+  auctionStartDate: string;
+  auctionEndDate: string;
+  defaultBid: number;
+  winningBid: string | number;
+  winningBidder: string | null;
+  notice: string | null;
+  receiveType: string;
 }

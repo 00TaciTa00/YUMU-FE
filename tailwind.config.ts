@@ -13,6 +13,7 @@ const config = {
       },
     },
     screens: {
+      mac: { max: '1499px' },
       // => @media (max-width: 1119px) { ... }
       md: { max: '1199px' }, // tablet
 
@@ -205,6 +206,12 @@ const config = {
           fontWeight: '700',
         },
       ],
+      '22.5-400': [
+        '2.25rem',
+        {
+          fontWeight: '400',
+        },
+      ],
       '22.5-500': [
         '2.25rem',
         {
@@ -212,10 +219,23 @@ const config = {
         },
       ],
       //fontsize: 24px
+      '24-500': [
+        '2.4rem',
+        {
+          fontWeight: '500',
+        },
+      ],
       '24-700': [
         '2.4rem',
         {
           fontWeight: '700',
+        },
+      ],
+      //fontsize: 28px
+      '28-400': [
+        '2.8rem',
+        {
+          fontWeight: '400',
         },
       ],
       '28-500': [
@@ -224,8 +244,6 @@ const config = {
           fontWeight: '500',
         },
       ],
-
-      //fontsize: 28px
       '28-700': [
         '2.8rem',
         {
@@ -323,7 +341,7 @@ const config = {
     extend: {
       fontFamily: {
         // 예시) <p className="font-TheJamsil">
-        TheJamsil: ['TheJamsil5Bold'],
+        TheJamsil: ['TheJamsil'],
         NotoSansKR: ['NotoSansKR'],
       },
       colors: {
@@ -368,16 +386,17 @@ const config = {
           4: '#4B4B4B',
         },
         gray: {
+          6: '#686868',
           7: '#787486',
+          8: '#888',
           9: '#9E9E9E',
-          C: '#CCC',
-          C5: '#C5C5C5',
+          99: '#999',
+          B: '#BDBDBD',
+          C: '#C5C5C5',
           D: '#D9D9D9',
           DF: '#DFDFDF',
           E: '#E0E0E0',
           F: '#FAFAFA',
-          B: '#BDBDBD',
-          99: '#999',
         },
         white: {
           DEFAULT: '#FFFFFF',
@@ -389,6 +408,7 @@ const config = {
         red: {
           DEFAULT: '#D6173A',
           F: '#FF7752',
+          E: '#E75852',
         },
         green: {
           DEFAULT: '#7AC555',

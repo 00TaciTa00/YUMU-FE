@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { AspectRatio } from '../../ui/aspect-ratio';
+import InfoBox from '@/components/common/InfoBox';
 
-export function LiveVideo() {
+interface LiveVideoProps {
+  notice: string;
+}
+
+export function LiveVideo({ notice }: LiveVideoProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
@@ -11,8 +16,8 @@ export function LiveVideo() {
   }, []);
 
   return (
-    <div className='col-span-2 bg-white'>
-      <AspectRatio ratio={16 / 9} className='bg-black'>
+    <div className='col-span-2 flex h-full flex-col justify-center gap-[2rem] rounded-[2rem] bg-white'>
+      <AspectRatio ratio={16 / 9} className='rounded-[2rem] bg-black-0'>
         {stream && (
           <video
             playsInline
@@ -23,9 +28,7 @@ export function LiveVideo() {
           />
         )}
       </AspectRatio>
-      <div className='rounded-xl bg-slate-50 p-2'>
-        유의사항 ex. 도서신간 배송 불가 / 실문배송이 아닌 이메일로 상품이 전달 됩니다.
-      </div>
+      {notice && <InfoBox className='mb-[2rem]' notice={notice} />}
     </div>
   );
 }

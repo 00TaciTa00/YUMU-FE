@@ -1,359 +1,318 @@
-'use client';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
-import { auctionFormSchema } from '@/types/validator/auctionForm';
-import { useState } from 'react';
-import { TimePickerDemo } from '@/components/domain/live/time-picker-demo';
-import { postAuction } from '@/services/api';
 import { RegistrationProps } from '@/types/types';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { postAuction } from '@/services/api';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Upload } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import ScrollButtons from '@/components/common/ScrollButtons';
+import { useRouter } from 'next/router';
 
-const defaultValues: Partial<RegistrationProps> = {
-  request: {
-    artName: '',
-    artDescription: '',
-    artSize: '',
-    artCreatedDate: undefined,
-    auctionStartDate: undefined,
-    auctionEndDate: undefined,
-    defaultBid: undefined,
-    notice: '',
-    receiveType: '',
-  },
-  image: undefined,
+const LeftLabel: React.FC<{
+  htmlFor: string;
+  mainLabel: string;
+  subLabel1?: string;
+  subLabel2?: string;
+  requiered?: boolean;
+}> = ({ htmlFor, mainLabel, subLabel1, subLabel2, requiered }) => {
+  return (
+    <div className='font-[TheJamsil]'>
+      <label htmlFor={htmlFor} className='text-28-400'>
+        {mainLabel} {requiered && <span className='text-red-F'>*</span>}
+      </label>
+      <p className='text-20-500 text-[#9e9e9e]'>{subLabel1}</p>
+      <p className='text-20-500 text-[#9e9e9e]'>{subLabel2}</p>
+    </div>
+  );
+};
+
+const RightLabel: React.FC<{ mainLabel: string; subLabel?: string }> = ({ mainLabel, subLabel }) => {
+  return (
+    <div className='mb-[1.2rem] font-[TheJamsil] '>
+      <p className='text-20-700 text-[#686868]'>{mainLabel}</p>
+      {subLabel && <p className='text-16-500 text-[#9e9e9e]'>{subLabel}</p>}
+    </div>
+  );
 };
 
 export default function Registration() {
-  const [selectedImage, setSelectedImage] = useState<string>('');
-  const form = useForm<RegistrationProps>({
-    resolver: zodResolver(auctionFormSchema),
-    defaultValues,
-  });
+  const { register, handleSubmit } = useForm<RegistrationProps>();
 
-  function onSubmit(data: RegistrationProps) {
-    const formData = {
-      request: data.request,
-      image: selectedImage,
-    };
+  const [imageFile, setImageFile] = useState<File>();
+  const [selectedImage, setSelectedImage] = useState<string>(''); // 대표 이미지 미리보기용
 
-    console.log(formData);
+  const router = useRouter();
 
-    postAuction(formData);
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files![0];
-    if (file) {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    if (event.target.files) {
+      const file = event.target.files[0];
+      setImageFile(file);
+      // 대표 이미지 미리보기용
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImage(String(reader.result));
       };
       reader.readAsDataURL(file);
+    } else {
+      console.log('No image selected');
     }
   };
 
+  const handleAuctionData = async (data: RegistrationProps) => {
+    const formData = new FormData();
+    formData.append('image', imageFile as unknown as string);
+
+    for (const [key, value] of Object.entries(data)) {
+      formData.append(key, value);
+    }
+
+    postAuction(formData)
+      .then(() => {
+        alert('저장되었습니다!');
+        router.push('/search');
+      })
+      .catch((error) => {
+        alert('경매 등록에 실패하였습니다! 이미지의 크기를 확인해주세요!');
+        console.error('postAuction error:', error);
+        // 오류 발생 시 처리할 내용 추가
+      });
+  };
+
+  function onPost(data: RegistrationProps) {
+    handleAuctionData(data);
+  }
+
   return (
-    <div className='m-auto w-[100rem] pt-2 md:w-[60rem] sm:w-[40rem]'>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-          <FormField
-            control={form.control}
-            name='request.artName'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    작품 제목 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div>
-                  <FormControl>
-                    <Input placeholder='작품 제목' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='image'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    대표 이미지 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div className='space-y-2'>
-                  <FormControl>
-                    <Button
-                      asChild
-                      style={{
-                        backgroundImage: `url(${selectedImage})`,
-                      }}
-                      className='h-[18rem] w-[32rem] bg-transparent bg-contain bg-center bg-no-repeat sm:h-[9rem] sm:w-[16rem]'
-                    >
-                      <Input
-                        type='file'
-                        placeholder='대표 이미지'
-                        onInput={handleFileChange}
-                        accept='image/*'
-                        {...field}
-                      />
-                    </Button>
-                  </FormControl>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='request.artSize'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    작품 규모 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div>
-                  <FormControl>
-                    <Input placeholder='가로(cm) x 세로(cm) x 높이(cm)' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='request.artCreatedDate'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    제작 일자 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={'outline'}
-                        className={cn(
-                          'w-[36rem] justify-start text-left font-normal sm:w-[24rem]',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        <CalendarIcon className='mr-2 h-4 w-4' />
-                        {field.value ? format(field.value, 'yyyy년 MM월 dd일') : <span>제작 일자</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className='w-auto p-0'>
-                      <Calendar
-                        mode='single'
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date >= new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='request.artDescription'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    작품 상세 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div>
-                  <FormControl>
-                    <Textarea placeholder='작품 상세' className='resize-none' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='request.auctionStartDate'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    경매 기간 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={'outline'}
-                        className={cn(
-                          'w-[36rem] justify-start text-left font-normal sm:w-[24rem]',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        <CalendarIcon className='mr-2 h-4 w-4' />
-                        {field.value ? format(field.value, 'yyyy년 MM월 dd일 HH:mm') : <span>경매 시작 일시</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className='w-auto p-0'>
-                      <Calendar
-                        mode='single'
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date <= new Date()}
-                        initialFocus
-                      />
-                      <div className='border-t border-border p-2'>
-                        <TimePickerDemo setDate={field.onChange} date={field.value} isSeconds={false} isIcon={false} />
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name='request.auctionEndDate'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div />
-                <div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={'outline'}
-                        className={cn(
-                          'sm:w-[24 w-[36rem] justify-start text-left font-normal',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        <CalendarIcon className='mr-2 h-4 w-4' />
-                        {field.value ? format(field.value, 'yyyy년 MM월 dd일 HH:mm') : <span>경매 종료 일시</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className='w-auto p-0'>
-                      <Calendar
-                        mode='single'
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                      <div className='border-t border-border p-3'>
-                        <TimePickerDemo setDate={field.onChange} date={field.value} isSeconds={false} isIcon={false} />
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='request.defaultBid'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    경매 시작가 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div>
-                  <FormControl>
-                    <Input placeholder='경매 시작가' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='request.receiveType'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>
-                    수령 방법 <span className='text-red-F'>*</span>
-                  </FormLabel>
-                </div>
-                <div>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='수령 방법' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value='직접거래'>직접 거래</SelectItem>
-                      <SelectItem value='배송'>택배 배송</SelectItem>
-                      <SelectItem value='우편'>우편 배송</SelectItem>
-                      <SelectItem value='이메일'>이메일</SelectItem>
-                      <SelectItem value='기타'>기타</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </FormItem>
-            )}
-          />
-          <Separator />
-          <FormField
-            control={form.control}
-            name='request.notice'
-            render={({ field }) => (
-              <FormItem className='grid w-full grid-cols-[2fr_3fr] '>
-                <div className='pt-3'>
-                  <FormLabel className='text-24-700 font-extrabold tracking-tight'>유의 사항</FormLabel>
-                </div>
-                <div>
-                  <FormControl>
-                    <Textarea placeholder='유의 사항' className='resize-none' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-          <Button type='submit' className='float-right'>
-            경매 등록
+    <div className='relative m-auto flex w-[138rem] gap-2 pt-2 text-[#222] md:w-[60rem] sm:w-[40rem]'>
+      <form onSubmit={handleSubmit(onPost)} encType='multipart/form-data' className='w-full'>
+        <div className='relative mb-[8rem] flex w-full flex-row items-center justify-between text-20-500'>
+          <h1 className='p-0 font-[TheJamsil] text-36-400'>작품 등록</h1>
+          <Button
+            type='submit'
+            variant={'outline'}
+            className='h-[4.8rem] w-[16rem] shrink-0 border-[#ffad33] text-[#ffad33]'
+          >
+            경매 등록하기
           </Button>
-        </form>
-      </Form>
+        </div>
+        <div className='grid w-full grid-cols-[1fr_2fr] gap-2 px-[8.8rem]'>
+          <LeftLabel
+            htmlFor='artName'
+            mainLabel='작품 제목'
+            subLabel1='당신의 노력이 더욱 빛날 수 있도록'
+            subLabel2='멋진 제목을 붙여주세요!'
+            requiered
+          />
+          <div>
+            <RightLabel mainLabel='긴 제목' subLabel='* 상세 페이지에 나오는 제목입니다.' />
+            <Input
+              {...register('artName')}
+              id='artName'
+              placeholder='긴 제목을 입력해주세요.'
+              className='mb-[3rem] text-16-500 '
+            />
+            <RightLabel mainLabel='짧은 제목' subLabel='* 배너에 나오는 제목입니다.' />
+            <Input
+              {...register('artSubTitle')}
+              id='artSubTitle'
+              placeholder='짧은 제목을 입력해주세요.'
+              className='text-16-500'
+            />
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='artDescription'
+            mainLabel='작품 상세'
+            subLabel1='당신의 작품을'
+            subLabel2='상세히 소개해주세요!'
+            requiered
+          />
+          <div>
+            <RightLabel mainLabel='작품 상세' subLabel='* 이미지 없이, 글로만 설명이 가능합니다.' />
+            <Textarea
+              {...register('artDescription')}
+              id='artDescription'
+              placeholder='작품 상세를 입력해주세요.'
+              className='mb-[3rem] min-h-[20rem] w-full resize-none border border-[#e0e0e0] bg-[#fafafa] px-[3.2rem] py-[2rem] font-[NotoSansKR] text-16-500 scrollbar-hide placeholder:text-[#bdbdbd]'
+            />
+            <RightLabel mainLabel='작품 요약' subLabel='* 300자 이내로 작성해주세요' />
+            <Textarea
+              {...register('artSummary')}
+              id='artSummary'
+              placeholder='작품 요약을 입력해주세요.'
+              maxLength={300}
+              className='min-h-[10rem] w-full resize-none border border-[#e0e0e0] bg-[#fafafa] px-[3.2rem] py-[2rem] font-[NotoSansKR] text-16-500 scrollbar-hide placeholder:text-[#bdbdbd]'
+            />
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='image'
+            mainLabel='대표 이미지'
+            subLabel1='작품을 쉽게 파악할 수 있도록'
+            subLabel2='멋진 이미지를 선정해주세요!'
+          />
+          <div className='m-0 h-fit w-full p-0'>
+            <RightLabel mainLabel='대표 이미지' subLabel='* 작품을 나타내는 이미지입니다.' />
+            <div className='relative m-0 h-[36rem] w-full p-0'>
+              <Input
+                id='image'
+                type='file'
+                accept='image/*'
+                required
+                style={{
+                  backgroundImage: `url(${selectedImage})`,
+                }}
+                className='z-20 h-full w-full bg-contain bg-center bg-no-repeat p-0 text-16-500 text-[#fafafa]'
+                onChange={handleImageChange}
+              />
+              {!imageFile && (
+                <div className='absolute bottom-1/2 right-1/2 z-10 flex translate-x-1/2 translate-y-1/2 flex-col items-center justify-center font-[NotoSansKR] text-20-700 text-[#9e9e9e]'>
+                  <Upload color='#ff7752' className='mb-[0.8rem] size-[2rem]' />
+                  <p className='text-[#686868]'>이미지 업로드</p>
+                  <p className='text-16-500'>파일형식 : jpg 또는 png</p>
+                  <p className='text-16-500'>사이즈 : 910px ⨯ 540px</p>
+                  <p className='text-nowrap text-16-500'>*작품 상세에서 가장 먼저 보이는 이미지입니다.</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='artSize'
+            mainLabel='작품 규모'
+            subLabel1='당신의 작품의 크기를'
+            subLabel2='모두에게 알려주세요!'
+            requiered
+          />
+          <div>
+            <RightLabel mainLabel='작품 규모' subLabel='* 단위는 cm입니다.' />
+            <Input
+              {...register('artSize')}
+              id='artSize'
+              placeholder='작품 규모를 입력해주세요.'
+              className='text-16-500'
+            />
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='artCreatedDate'
+            mainLabel='제작 일자'
+            subLabel1='당신의 작품이 언제 탄생했는지'
+            subLabel2='모두에게 알려주세요!'
+            requiered
+          />
+          <div>
+            <RightLabel mainLabel='제작 일자' subLabel='* 대략적인 제작 일자를 입력해주세요.' />
+            <Input
+              {...register('artCreatedDate')}
+              id='artCreatedDate'
+              type='datetime-local'
+              className='w-1/2 text-16-500'
+            />
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='auctionStartDate'
+            mainLabel='경매 기간'
+            subLabel1='언제 경매가 이뤄지는지'
+            subLabel2='확실하게 말해주세요!'
+            requiered
+          />
+          <div>
+            <RightLabel mainLabel='경매 시작일시' />
+            <Input
+              {...register('auctionStartDate')}
+              id='auctionStartDate'
+              type='datetime-local'
+              className='mb-[3rem] w-1/2 text-16-500'
+            />
+            <RightLabel mainLabel='경매 종료일시' />
+            <Input
+              {...register('auctionEndDate')}
+              id='auctionEndDate'
+              type='datetime-local'
+              className='w-1/2 text-16-500'
+            />
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='defaultBid'
+            mainLabel='기본 입찰가'
+            subLabel1='당신 작품의 최소 가치를'
+            subLabel2='고려해주세요!'
+          />
+          <div>
+            <RightLabel mainLabel='기본 입찰가' subLabel='* 최저 입찰액입니다.' />
+            <Input
+              {...register('defaultBid')}
+              id='defaultBid'
+              type='number'
+              placeholder='기본 입찰가를 입력해주세요.'
+              className='text-16-500'
+            />
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='receiveType'
+            mainLabel='수령 방법'
+            subLabel1='당신의 작품은'
+            subLabel2='어떻게 전달되나요?'
+          />
+          <div>
+            <RightLabel mainLabel='수령 방법' subLabel='* 기타일 경우, 유의사항이나 작품 상세에 입력해주세요.' />
+            <select
+              {...register('receiveType')}
+              id='receiveType'
+              className='h-[6.4rem] w-1/2 rounded-[0.6rem] border-[0.1rem] border-[#e0e0e0] bg-[#fafafa] px-[4rem] py-[1.5rem] text-16-500 outline-gray-E focus:outline-orange-F focus-visible:ring-offset-2'
+            >
+              <option value='직접거래' className='text-16-500'>
+                직접 거래
+              </option>
+              <option value='배송' className='text-16-500'>
+                택배 배송
+              </option>
+              <option value='우편' className='text-16-500'>
+                우편 배송
+              </option>
+              <option value='이메일' className='text-16-500'>
+                이메일
+              </option>
+              <option value='기타' className='text-16-500'>
+                기타
+              </option>
+            </select>
+          </div>
+          <Separator className='col-span-2 my-[8rem]' />
+          <LeftLabel
+            htmlFor='notice'
+            mainLabel='유의 사항'
+            subLabel1='작품과 경매에서의'
+            subLabel2='유의 사항을 알려주세요!'
+          />
+          <div>
+            <RightLabel mainLabel='유의 사항' subLabel='* 상세 페이지에 나오는 유의 사항입니다.' />
+            <Textarea
+              {...register('notice')}
+              id='notice'
+              placeholder='유의사항 '
+              className='min-h-[20rem] w-full resize-none border border-[#e0e0e0] bg-[#fafafa] px-[3.2rem] py-[2rem] font-[NotoSansKR] text-16-500 scrollbar-hide placeholder:text-[#bdbdbd]'
+            />
+          </div>
+        </div>
+        <div className='relative mb-[8rem] flex w-full flex-row items-center justify-end p-[8rem] text-20-500'>
+          <Button
+            type='submit'
+            variant={'outline'}
+            className='h-[4.8rem] w-[16rem] shrink-0 border-[#ffad33] text-[#ffad33]'
+          >
+            경매 등록하기
+          </Button>
+        </div>
+      </form>
+      <ScrollButtons />
     </div>
   );
 }
